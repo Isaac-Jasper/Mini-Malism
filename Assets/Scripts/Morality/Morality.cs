@@ -9,8 +9,18 @@ public abstract class Morality
     [SerializeField]
     protected Color color;
     [SerializeField]
-    GameObject character;
+    protected GameObject character;
+    protected Character charScript;
+    protected bool WasConverted = false;
     public Morality(GameObject character, Color color) {
+        this.character = character;
+        charScript = character.GetComponent<Character>();
+        this.color = color;
+        SetColor();
+    }
+    
+    public Morality(GameObject character, Color color, bool converted) {
+        WasConverted = converted;
         this.character = character;
         this.color = color;
         SetColor();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Unity.Mathematics;
 using Unity.VisualScripting;
@@ -11,14 +12,12 @@ using Random = UnityEngine.Random;
 public class Character : MonoBehaviour
 {
     [SerializeField]
-    protected Stats stats;
+    public Stats stats;
     [SerializeField]
     protected Color EvilColor, GoodColor, InnocentColor;
     protected Morality morality;
     [SerializeField]
     protected Rigidbody2D rb;
-    [SerializeField]
-    CharacterType characterType;
     protected bool canMove = true;
     [Serializable]
     public enum MoveType {
@@ -42,7 +41,7 @@ public class Character : MonoBehaviour
         if (canMove) StartMove();
     }
     protected virtual void Initialize() {
-        Convert(characterType);
+        Convert(stats.characterType);
         if (rb == null) rb = GetComponent<Rigidbody2D>();
     }
     public virtual void Squished() {
@@ -53,7 +52,7 @@ public class Character : MonoBehaviour
         if (!collision.transform.CompareTag("Character")) return;
 
         Character other = collision.gameObject.GetComponent<Character>();
-        switch (other.characterType) {
+        switch (other.stats.characterType) {
             case CharacterType.EVILDOER: morality.EvilCollide(other);
             break;
             case CharacterType.INNOCENT: morality.InnocentCollide(other);
@@ -73,8 +72,14 @@ public class Character : MonoBehaviour
         yield return new WaitForSeconds(Random.Range(stats.minWaitTime, stats.maxWaitTime));
         EndMove();
     }
-    protected virtual IEnumerator TargetWander(Vector2 targetPos) {
-        Vector2 targetDir = (Vector2) transform.position-targetPos;
+    protected virtual IEnumerator TargetWander() {
+        Vector2 target = GetTarget();
+        if (target == (Vector2) transform.position) {
+            StartCoroutine(RandomWander());
+            yield break;
+        }
+
+        Vector2 targetDir = (Vector2) transform.position-target;
 
         float range;
         if (targetDir.y > 0) {
@@ -92,16 +97,40 @@ public class Character : MonoBehaviour
         rb.velocity = Vector2.zero;
         yield return new WaitForSeconds(Random.Range(stats.minWaitTime, stats.maxWaitTime));
         EndMove();
-        EndMove();
+    }
+    protected virtual Vector2 GetTarget() {
+        Character[] potentialTargets = null;
+        switch (stats.target) {
+            case CharacterType.INNOCENT: potentialTargets = CharacterTracker.Instance.GetInnocentCharacters();
+            break;
+            case CharacterType.GOOD: potentialTargets = CharacterTracker.Instance.GetGoodCharacters();
+            break;
+            case CharacterType.EVILDOER: potentialTargets = CharacterTracker.Instance.GetEvilCharacters();
+            break;
+            default: CharacterTracker.Instance.GetInnocentCharacters();
+            break;
+        }
+        Vector2 closestTarget = transform.position;
+        float closestDirection = 1000000;
+        for (int i = 0; i < potentialTargets.Length; i++) {
+            if (potentialTargets[i] == null) break;
+            float dist = (transform.position - potentialTargets[i].transform.position).magnitude;
+            if (dist <= closestDirection) {
+                closestDirection = dist;
+                closestTarget = potentialTargets[i].transform.position;
+            }
+        }
+        return closestTarget;
     }
     public void Convert(CharacterType type) {
         morality = type switch
             {
-                CharacterType.EVILDOER => new EvilMorality(gameObject, EvilColor),
-                CharacterType.GOOD => new GoodMorality(gameObject, GoodColor),
-                CharacterType.INNOCENT => new InnocentMorality(gameObject, InnocentColor),
-                _ => new InnocentMorality(gameObject, InnocentColor),
+                CharacterType.EVILDOER => new EvilMorality(gameObject, EvilColor, true),
+                CharacterType.GOOD => new GoodMorality(gameObject, GoodColor, true),
+                CharacterType.INNOCENT => new InnocentMorality(gameObject, InnocentColor, true),
+                _ => new InnocentMorality(gameObject, InnocentColor, true),
             };
+        stats.characterType = type;
     }
     protected virtual void StartMove() {
         canMove = false;
@@ -109,7 +138,7 @@ public class Character : MonoBehaviour
             case MoveType.randomWander: StartCoroutine(RandomWander());
             break;
 
-            case MoveType.targetWander: StartCoroutine(TargetWander(Vector2.zero));
+            case MoveType.targetWander: StartCoroutine(TargetWander());
             break;
         }
     }
@@ -125,10 +154,10 @@ public class Character : MonoBehaviour
         targetPercentLoss;
 
         [SerializeField]
-        public CharacterType target {get; set;}
+        public CharacterType target;
         [SerializeField]
-        public CharacterType characterType {get;}
+        public CharacterType characterType;
         [SerializeField]
-        public MoveType moveType {get; set;}
+        public MoveType moveType;
     }
 }

@@ -4,11 +4,12 @@ using UnityEngine;
 
 public class GoodMorality : Morality
 {
+    public GoodMorality(GameObject character, Color color, bool WasConverted) : base(character, color) { }
     public GoodMorality(GameObject character, Color color) : base(character, color) { }
-
+    int MAX_GOOD_POINTS = 50;
+    int pointsGiven = 0;
     public override void Death() {
-        return;
-        //do nothing
+        UIScoreController.Instance.AddScore(-1000);
     }
     public override void EvilCollide(Character other) {
         return;
@@ -21,7 +22,8 @@ public class GoodMorality : Morality
     }
 
     public override void InnocentCollide(Character other) {
-        return;
-        //do nothing
+        pointsGiven++;
+        if (pointsGiven < MAX_GOOD_POINTS)
+            UIScoreController.Instance.AddScore(10);
     }
 }

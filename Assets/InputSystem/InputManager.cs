@@ -10,7 +10,6 @@ public class InputManager : MonoBehaviour {
     public static InputManager Instance {
         get { return instance; }
     }
-
     public delegate void GameplayClickStarted(Vector2 position, float time);
     public event GameplayClickStarted OnGameplayClickStarted;
     public delegate void GameplayRestartStarted(float time);
@@ -21,7 +20,7 @@ public class InputManager : MonoBehaviour {
     private Input mainInput;
     private Camera mainCamera;
 
-    public bool LockedInput { get; set; }
+    public bool LockedInput;
 
     private void Awake() {
         if (instance != null && instance != this) {
@@ -59,7 +58,6 @@ public class InputManager : MonoBehaviour {
     }
     private void Gameplay_Pause_Started(InputAction.CallbackContext ctx) {
         //Debug.Log("Gameplat Pause Started");
-        if (!CheckIfCanInput()) return;
         OnGameplayPauseStarted?.Invoke((float)ctx.startTime);
     }
     private void Gameplay_Restart_Started(InputAction.CallbackContext ctx) {
