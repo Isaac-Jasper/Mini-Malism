@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -11,7 +12,8 @@ public class UIScoreController : MonoBehaviour
     public static UIScoreController Instance {
         get { return instance; }
     }
-
+    [SerializeField]
+    private int badScore, goodScore, developerScore;
     [SerializeField]
     private TMP_Text scoreText;
     [SerializeField]
@@ -30,8 +32,34 @@ public class UIScoreController : MonoBehaviour
         startTime = Time.time;
     }
     private void Update() {
-        scoreMult = math.log2(Time.time - startTime + 1);
+        scoreMult = CurrentScoreMult();
         UpdateScore();
+    }
+
+    public float CurrentScoreMult() {
+        return  math.log2(Time.time - startTime + 1) + 1;
+    }
+    public bool isLoseScore() {
+        if (score <= 0) return true;
+        return false;
+    }
+    public bool isBadScore() {
+        if (score <= 0) return false;
+        if (score <= badScore) return true;
+        return false;
+    }
+    public bool isNuetralScore() {
+        if (score < goodScore && score > badScore) return true;
+        return false;
+    }
+    public bool isGoodScore() {
+        if (score >= developerScore) return false;
+        if (score >= goodScore) { Debug.Log(score); return true; }
+        return false;
+    }
+    public bool isDeveloperScore() {
+        if (score >= developerScore) return true;
+        return false;
     }
     public void AddScore(int change) {
         score += (int) ((float) change * scoreMult);
@@ -40,6 +68,9 @@ public class UIScoreController : MonoBehaviour
         score += change;
     }
     public void UpdateScore() {
-        scoreText.text = ""+score.ToString("00000000");
+        scoreText.text = ""+score.ToString("00000");
+    }
+    public int getDeveloperScore() {
+        return developerScore;
     }
 }

@@ -9,7 +9,7 @@ public class GoodMorality : Morality
     int MAX_GOOD_POINTS = 50;
     int pointsGiven = 0;
     public override void Death() {
-        UIScoreController.Instance.AddScore(-1000);
+        GameController.Instance.LoseGreenDeath();
     }
     public override void EvilCollide(Character other) {
         return;

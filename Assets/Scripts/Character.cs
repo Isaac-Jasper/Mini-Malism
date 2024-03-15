@@ -1,11 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using Unity.Mathematics;
-using Unity.VisualScripting;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -64,6 +58,10 @@ public class Character : MonoBehaviour
         }
     }
     protected virtual IEnumerator RandomWander() {
+        if (GameController.Instance.IsTerminal()) {
+            Stop();
+            yield break;
+        }
         float dirR = Random.Range(0, (float) Math.PI*2);
         Vector2 dir = new Vector2((float) Math.Cos(dirR),(float) Math.Sin(dirR)).normalized;
         rb.velocity = dir*stats.moveSpeed;
@@ -73,6 +71,10 @@ public class Character : MonoBehaviour
         EndMove();
     }
     protected virtual IEnumerator TargetWander() {
+        if (GameController.Instance.IsTerminal()) {
+            Stop();
+            yield break;
+        }
         Vector2 target = GetTarget();
         if (target == (Vector2) transform.position) {
             StartCoroutine(RandomWander());
@@ -98,6 +100,13 @@ public class Character : MonoBehaviour
         yield return new WaitForSeconds(Random.Range(stats.minWaitTime, stats.maxWaitTime));
         EndMove();
     }
+
+    protected void Stop() {
+        StopAllCoroutines();
+        rb.velocity = Vector2.zero;
+        rb.bodyType = RigidbodyType2D.Static;
+    }
+
     protected virtual Vector2 GetTarget() {
         Character[] potentialTargets = null;
         switch (stats.target) {
@@ -131,6 +140,7 @@ public class Character : MonoBehaviour
                 _ => new InnocentMorality(gameObject, InnocentColor, true),
             };
         stats.characterType = type;
+        morality.WasConverted = true;
     }
     protected virtual void StartMove() {
         canMove = false;

@@ -11,7 +11,7 @@ public abstract class Morality
     [SerializeField]
     protected GameObject character;
     protected Character charScript;
-    protected bool WasConverted = false;
+    public bool WasConverted = false;
     public Morality(GameObject character, Color color) {
         this.character = character;
         charScript = character.GetComponent<Character>();

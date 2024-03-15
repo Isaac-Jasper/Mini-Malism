@@ -24,6 +24,18 @@ public class SceneController : MonoBehaviour
             instance = this;
         }
     }
+    public void OnEnable() {
+        Subscribe();
+    }
+    public void OnDisable() {
+        UnSubscribe();
+    }
+    private void Subscribe() {
+        InputManager.Instance.OnGameplayRestartStarted += RestartClicked;
+    }
+    private void UnSubscribe() {
+        InputManager.Instance.OnGameplayRestartStarted -= RestartClicked;
+    }
     public void Start() {
         StartScene();
     }
@@ -38,6 +50,9 @@ public class SceneController : MonoBehaviour
         }
         textFadeGroup.alpha = 1;
         SceneManager.LoadScene(scene);
+    }
+    private void RestartClicked(float time) {
+        RestartScene();
     }
     public void RestartScene() {
         StopAllCoroutines();
