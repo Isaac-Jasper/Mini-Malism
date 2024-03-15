@@ -1,6 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using Unity.Mathematics;
+using Unity.VisualScripting;
+using UnityEditor.Experimental.GraphView;
+using Random = UnityEngine.Random;
 
 public class EvilMorality : Morality
 {
@@ -16,6 +23,8 @@ public class EvilMorality : Morality
         if (!WasConverted)
             UIScoreController.Instance.AddScore(1000);
         else UIScoreController.Instance.AddScoreNoMult(1000);
+        CharacterTracker.Instance.EvilDeath();
+        GameController.Instance.CheckIfWin();
     }
     public override void EvilCollide(Character other) {
         return;
